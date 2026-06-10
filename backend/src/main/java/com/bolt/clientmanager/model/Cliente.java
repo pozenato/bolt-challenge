@@ -20,6 +20,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import jakarta.persistence.PrePersist;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +65,13 @@ public class Cliente {
     @Column(nullable = false)
     @Builder.Default
     private Boolean ativo = true;
+
+    @PrePersist
+    public void prePersist() {
+        if (ativo == null) {
+            ativo = true;
+        }
+    }
 
     // Helper method to maintain bi-directional relationship
     public void addUnidadeConsumidora(UnidadeConsumidora unidade) {
