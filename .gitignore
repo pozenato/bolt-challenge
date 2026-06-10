@@ -1,0 +1,24 @@
+# Tooling and compiled binaries
+tools/
+
+# Spring Boot backend ignore files
+backend/target/
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/HELP.md
+
+# Angular frontend ignore files
+frontend/node_modules/
+frontend/dist/
+frontend/tmp/
+frontend/.angular/
+frontend/*.log
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.swp
+*.log
+.DS_Store
