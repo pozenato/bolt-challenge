@@ -1,0 +1,188 @@
+<div class="form-dialog-container" [formGroup]="clienteForm">
+  <!-- Dialog Header -->
+  <div class="dialog-header">
+    <div class="dialog-title-group">
+      <mat-icon class="dialog-icon">{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
+      <h2 class="dialog-title">{{ isEditMode ? 'Editar Cliente' : 'Novo Cliente' }}</h2>
+    </div>
+    <button mat-icon-button (click)="cancelar()" class="close-btn" aria-label="Fechar modal">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="dialog-content">
+
+    <!-- Dados Pessoais Section -->
+    <section class="form-section">
+      <h3 class="section-title">
+        <mat-icon>person</mat-icon> Dados Pessoais
+      </h3>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome Completo</mat-label>
+          <input matInput formControlName="nome" placeholder="Ex: João da Silva" id="input-nome">
+          <mat-icon matSuffix>badge</mat-icon>
+          <mat-error *ngIf="clienteForm.get('nome')?.hasError('required')">Nome é obrigatório</mat-error>
+          <mat-error *ngIf="clienteForm.get('nome')?.hasError('minlength')">Mínimo de 3 caracteres</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>CPF ou CNPJ</mat-label>
+          <input matInput formControlName="documento" placeholder="Apenas números" id="input-documento">
+          <mat-icon matSuffix>fingerprint</mat-icon>
+          <mat-hint>Informe 11 dígitos (CPF) ou 14 dígitos (CNPJ)</mat-hint>
+          <mat-error *ngIf="clienteForm.get('documento')?.hasError('required')">Documento é obrigatório</mat-error>
+          <mat-error *ngIf="clienteForm.get('documento')?.hasError('pattern') || clienteForm.get('documento')?.hasError('invalidLength')">
+            Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido
+          </mat-error>
+        </mat-form-field>
+      </div>
+    </section>
+
+    <!-- Endereço do Cliente Section -->
+    <section class="form-section" formGroupName="enderecoCliente">
+      <h3 class="section-title">
+        <mat-icon>home</mat-icon> Endereço do Cliente
+      </h3>
+
+      <div class="form-row cep-row">
+        <mat-form-field appearance="outline" class="cep-field">
+          <mat-label>CEP</mat-label>
+          <input matInput formControlName="cep" placeholder="00000-000" mask="00000-000"
+                 (blur)="buscarCepCliente()" id="input-cep-cliente">
+          <mat-icon matSuffix *ngIf="!loadingCep">search</mat-icon>
+          <mat-hint>Busca automática ao sair do campo</mat-hint>
+          <mat-error *ngIf="clienteForm.get('enderecoCliente.cep')?.hasError('required')">CEP obrigatório</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="numero-field">
+          <mat-label>Número</mat-label>
+          <input matInput formControlName="numero" placeholder="Ex: 42" id="input-numero-cliente">
+          <mat-error *ngIf="clienteForm.get('enderecoCliente.numero')?.hasError('required')">Número obrigatório</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-col">
+        <mat-form-field appearance="outline">
+          <mat-label>Logradouro</mat-label>
+          <input matInput formControlName="logradouro" id="input-logradouro-cliente">
+          <mat-icon matSuffix>edit_road</mat-icon>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Bairro</mat-label>
+          <input matInput formControlName="bairro" id="input-bairro-cliente">
+        </mat-form-field>
+      </div>
+
+      <div class="form-row two-col">
+        <mat-form-field appearance="outline">
+          <mat-label>Cidade</mat-label>
+          <input matInput formControlName="localidade" id="input-localidade-cliente">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="small-field">
+          <mat-label>UF</mat-label>
+          <input matInput formControlName="uf" maxlength="2" id="input-uf-cliente">
+        </mat-form-field>
+      </div>
+
+      <div class="form-row">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Complemento</mat-label>
+          <input matInput formControlName="complemento" placeholder="Apto, Bloco, Sala..." id="input-complemento-cliente">
+        </mat-form-field>
+      </div>
+    </section>
+
+    <!-- Unidades Consumidoras Section -->
+    <section class="form-section">
+      <div class="section-header-with-action">
+        <h3 class="section-title">
+          <mat-icon>electrical_services</mat-icon> Unidades Consumidoras
+        </h3>
+        <button mat-stroked-button color="primary" type="button" (click)="addUnidadeConsumidora()" id="btn-add-unidade">
+          <mat-icon>add_circle_outline</mat-icon> Adicionar Unidade
+        </button>
+      </div>
+
+      <div *ngIf="unidadesConsumidoras.length === 0" class="no-units-placeholder">
+        <mat-icon>power_off</mat-icon>
+        <span>Nenhuma unidade consumidora adicionada</span>
+      </div>
+
+      <div formArrayName="unidadesConsumidoras">
+        <div *ngFor="let uc of unidadesConsumidoras.controls; let i = index" [formGroupName]="i" class="uc-card">
+          <div class="uc-card-header">
+            <mat-icon class="uc-icon">bolt</mat-icon>
+            <h4>Unidade Consumidora {{ i + 1 }}</h4>
+            <button mat-icon-button color="warn" type="button" (click)="removeUnidadeConsumidora(i)" class="remove-btn" [attr.id]="'btn-remove-uc-' + i">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </div>
+
+          <div class="form-row two-col">
+            <mat-form-field appearance="outline">
+              <mat-label>Nome da Unidade</mat-label>
+              <input matInput formControlName="nome" placeholder="Ex: Filial Centro" [attr.id]="'input-uc-nome-' + i">
+              <mat-error *ngIf="uc.get('nome')?.hasError('required')">Nome obrigatório</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Número de Instalação</mat-label>
+              <input matInput formControlName="numeroInstalacao" placeholder="Ex: 0001234567" [attr.id]="'input-uc-instalacao-' + i">
+              <mat-error *ngIf="uc.get('numeroInstalacao')?.hasError('required')">Número de instalação obrigatório</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div formGroupName="endereco" class="uc-address">
+            <div class="form-row cep-row">
+              <mat-form-field appearance="outline" class="cep-field">
+                <mat-label>CEP da Unidade</mat-label>
+                <input matInput formControlName="cep" placeholder="00000-000" mask="00000-000"
+                       (blur)="buscarCepUnidade(i)" [attr.id]="'input-uc-cep-' + i">
+                <mat-icon matSuffix>search</mat-icon>
+                <mat-error *ngIf="uc.get('endereco.cep')?.hasError('required')">CEP obrigatório</mat-error>
+                <mat-error *ngIf="uc.get('endereco.cep')?.hasError('unservicedRegion')">Região não atendida (SP, RS, PR)</mat-error>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="numero-field">
+                <mat-label>Número</mat-label>
+                <input matInput formControlName="numero" [attr.id]="'input-uc-numero-' + i">
+                <mat-error *ngIf="uc.get('endereco.numero')?.hasError('required')">Número obrigatório</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="form-row two-col">
+              <mat-form-field appearance="outline">
+                <mat-label>Logradouro</mat-label>
+                <input matInput formControlName="logradouro" [attr.id]="'input-uc-logradouro-' + i">
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Cidade / UF</mat-label>
+                <input matInput formControlName="localidade" [attr.id]="'input-uc-localidade-' + i">
+              </mat-form-field>
+            </div>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Complemento</mat-label>
+                <input matInput formControlName="complemento" [attr.id]="'input-uc-complemento-' + i">
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </mat-dialog-content>
+
+  <!-- Dialog Actions -->
+  <mat-dialog-actions class="dialog-actions">
+    <button mat-stroked-button type="button" (click)="cancelar()" id="btn-cancelar" [disabled]="saving">
+      <mat-icon>cancel</mat-icon> Cancelar
+    </button>
+    <button mat-raised-button color="primary" type="button" (click)="salvar()" id="btn-salvar" [disabled]="saving">
+      <mat-icon>{{ saving ? 'hourglass_empty' : 'save' }}</mat-icon>
+      {{ saving ? 'Salvando...' : (isEditMode ? 'Atualizar' : 'Cadastrar') }}
+    </button>
+  </mat-dialog-actions>
+</div>
